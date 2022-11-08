@@ -15,7 +15,7 @@ app.get('/',(req,res)=>{
 });
 // connecting to the mongo db
 
-const uri = "mongodb+srv://assignment-11-DB:ZO13y6nybu8cVHZN@cluster0.ugpmzsn.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.ugpmzsn.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run(){
     try{
