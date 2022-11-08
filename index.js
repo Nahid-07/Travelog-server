@@ -67,7 +67,12 @@ async function run(){
             const result = await addComments.deleteOne(query);
             res.send(result)
         })
-        
+        // add post api 
+        app.post('/services', async(req,res)=>{
+            const service = req.body;
+            const addService = await dataBase.insertOne(service);
+            res.send(addService)
+        })
     }
     finally{
 
