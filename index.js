@@ -3,7 +3,6 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
-const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 // middlewares
@@ -15,7 +14,6 @@ app.get('/',(req,res)=>{
     res.send('server is running...');
 });
 // connecting to the mongo db
-
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.ugpmzsn.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run(){
@@ -32,14 +30,14 @@ async function run(){
         // getting limited data from the database 
         app.get('/servicespart',async(req,res)=>{
             const query = {};
-            const cursor = dataBase.find(query).sort({datefield:-1}).limit(3);
+            const cursor = dataBase.find(query).sort({time:-1}).limit(3);
             const services = await cursor.toArray()
             res.send(services)
         })
         // getting all data from the database
         app.get('/services',async(req,res)=>{
             const query = {};
-            const cursor = dataBase.find(query);
+            const cursor = dataBase.find(query).sort({time : -1});
             const services = await cursor.toArray()
             res.send(services)
         })
@@ -57,7 +55,6 @@ async function run(){
         })
         // getting comments
         app.get('/comments',async(req,res)=>{
-            // console.log(req.query)
             let query = {};
             if(req.query.email){
                 query ={
