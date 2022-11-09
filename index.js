@@ -60,6 +60,12 @@ async function run(){
             const comments = await cursor.toArray();
             res.send(comments)
         });
+        app.get('/comments/:id',async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id : ObjectId(id)}
+            const comment = await addComments.findOne(query)
+            res.send(comment)
+        })
         app.delete('/comments/:id', async(req,res)=>{
             const id = req.params.id;
             // console.log(id)
