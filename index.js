@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 // middlewares
@@ -21,10 +22,17 @@ async function run(){
     try{
         const dataBase = client.db('assignment-11-DB').collection('services');
         const addComments = client.db('assignment-11-DB').collection('comments')
+
+        //  JWT TOKEN 
+        app.post('/jwt',(req,res)=>{
+            const user = req.body;
+            const token = jwt.sign(user,process.env.ACCESS_TOKEN,{expiresIn:'1h'})
+            res.send({token})
+        })
         // getting limited data from the database 
         app.get('/servicespart',async(req,res)=>{
             const query = {};
-            const cursor = dataBase.find(query).limit(3);
+            const cursor = dataBase.find(query).sort({datefield:-1}).limit(3);
             const services = await cursor.toArray()
             res.send(services)
         })
@@ -78,6 +86,19 @@ async function run(){
             const service = req.body;
             const addService = await dataBase.insertOne(service);
             res.send(addService)
+        })
+        // update a user comments
+        app.put('/comments/:id',async(req,res)=>{
+            const id = req.params.id;
+            const updateComment =req.body;
+            const filter = {_id : ObjectId(id)};
+            const updated={
+                $set:{
+                    message : updateComment.message
+                }
+            }
+            const result = await addComments.updateOne(filter,updated);
+            res.send(result)
         })
     }
     finally{
