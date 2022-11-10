@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 // middlewares
@@ -13,6 +14,21 @@ app.use(express.json());
 app.get('/',(req,res)=>{
     res.send('server is running...');
 });
+function verifyJwt(req,res,next){
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        res.send({message : "Unauthorized access"})
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token,process.env.ACCESS_TOKEN,function(err,decoded){
+        if(err){
+            res.send({messeage:"unauthorized access"})
+        }
+        req.decoded = decoded;
+        next()
+    })
+
+}
 // connecting to the mongo db
 const uri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASSWORD}@cluster0.ugpmzsn.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -24,8 +40,9 @@ async function run(){
         //  JWT TOKEN 
         app.post('/jwt',(req,res)=>{
             const user = req.body;
-            const token = jwt.sign(user,process.env.ACCESS_TOKEN,{expiresIn:'1h'})
+            const token = jwt.sign(user,process.env.ACCESS_TOKEN,{expiresIn:'1h'});
             res.send({token})
+            
         })
         // getting limited data from the database 
         app.get('/servicespart',async(req,res)=>{
@@ -54,7 +71,12 @@ async function run(){
             res.send(comment)
         })
         // getting comments
-        app.get('/comments',async(req,res)=>{
+        app.get('/comments',verifyJwt,async(req,res)=>{
+           const decoded = req.decoded;
+           console.log(decoded)
+           if(decoded.email !== req.query.email){
+            res.send({message:'access denied'})
+           }
             let query = {};
             if(req.query.email){
                 query ={
@@ -77,6 +99,13 @@ async function run(){
             const query = {_id : ObjectId(id)};
             const result = await addComments.deleteOne(query);
             res.send(result)
+        })
+        app.get('/allcomments',async(req,res)=>{
+            const query = {}
+            const cursor = addComments.find(query)
+            const result= await cursor.toArray()
+            res.send(result)
+
         })
         // add post api 
         app.post('/services', async(req,res)=>{
@@ -110,5 +139,3 @@ run().catch(err => {
 app.listen(port,()=>{
     console.log(`server is running on port ${port}` )
 })
-
-// assignment-11-DB ZO13y6nybu8cVHZN
